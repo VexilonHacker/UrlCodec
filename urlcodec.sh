@@ -1,5 +1,4 @@
-#!/bin/bash 
-
+#!/bin/bash
 
 output_file=""
 tasks=()
@@ -16,6 +15,7 @@ if [[ -t 1 ]]; then
     color_reset="\033[0m"
 fi
 
+while [[ $# -gt 0 ]]; do
     case "$1" in
         -o|--output)
             output_file="$2"
@@ -30,17 +30,17 @@ fi
             shift
             ;;
         -h|--help)
-            echo -e "${color_yellow}Usage:${color_reset} url_encode.sh [options] [--decode] <url> [--decode <url>]..."
+            echo -e "${color_yellow}Usage:${color_reset} urlcodec.sh [options] [--decode] <url> [--decode <url>]..."
             echo -e "\n${color_yellow}Options:${color_reset}"
             echo -e "  ${color_green}-o, --output <file>${color_reset}   Append results (with color codes) to <file>"
             echo -e "  ${color_green}-d, --decode${color_reset}          Decode the next URL instead of encoding"
             echo -e "  ${color_green}-e, --encode${color_reset}          Encode the URL (default behavior)"
             echo -e "  ${color_green}-h, --help${color_reset}            Show this help message"
             echo -e "\n${color_yellow}Examples:${color_reset}"
-            echo -e "  url_encode.sh ${color_green}-e${color_reset} ${color_red}\"http://example.com/path/to/file\"${color_reset}"
-            echo -e "  url_encode.sh ${color_green}-e${color_reset} ${color_red}\"http://example.com/abc?param1=1&param2=2\"${color_reset}"
-            echo -e "  url_encode.sh ${color_green}-d${color_reset} ${color_red}\"http%3A%2F%2Fexample%2Ecom%2Fabc%3Fparam1%3D1%26param2%3D2\"${color_reset}"
-            echo -e "  url_encode.sh ${color_green}-e${color_reset} ${color_red}\"http://example.com/file\" ${color_green}-o${color_reset} ${color_red}encoded.txt${color_reset}"
+            echo -e "  urlcodec.sh -e \"http://example.com/path/to/file\""
+            echo -e "  urlcodec.sh -e \"http://example.com/abc?param1=1&param2=2\""
+            echo -e "  urlcodec.sh -d \"http%3A%2F%2Fexample%2Ecom%2Fabc%3Fparam1%3D1%26param2%3D2\""
+            echo -e "  urlcodec.sh -e \"http://example.com/file\" -o encoded.txt"
             exit 0
             ;;
         --)
@@ -59,14 +59,14 @@ fi
     esac
 done
 
+if [[ ${#tasks[@]} -eq 0 ]]; then
     echo -e "${color_red}Error:${color_reset} No URLs provided."
     exit 1
 fi
 
 for entry in "${tasks[@]}"; do
     this_mode="${entry%%:::*}"
-    processed=""
-    label=""
+    url="${entry##*:::}"
 
     if [[ "$this_mode" == "encode" ]]; then
         processed=$(perl -MURI::Escape -e 'print uri_escape($ARGV[0], q{^A-Za-z0-9})' "$url")
